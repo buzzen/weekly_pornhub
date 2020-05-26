@@ -1,0 +1,8 @@
+# options like the URL where you want to download from, 
+# duration filter, country, etc.
+
+---
+order: mv
+min_duration: 20
+country: jp
+time: m # weekly, monthly, or yearly
