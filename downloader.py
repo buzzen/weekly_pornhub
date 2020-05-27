@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
+from selenium.webdriver.common.keys import Keys
 import time
 import sys
 
@@ -99,8 +100,7 @@ class Downloader:
             id_box.send_keys(self.username)
             pass_box = self.driver.find_element_by_id("passwordModal")
             pass_box.send_keys(self.password)
-            login_button = self.driver.find_element_by_id("signinSubmit")
-            login_button.click()
+            pass_box.submit()
         except ElementNotInteractableException: # login page
             for i in range(60):
                 time.sleep(1)
@@ -109,8 +109,9 @@ class Downloader:
                     id_box.send_keys(self.username)
                     pass_box = self.driver.find_element_by_id("password")
                     pass_box.send_keys(self.password)
-                    login_button = self.driver.find_element_by_id("submit")
-                    login_button.click()
+                    pass_box.send_keys(Keys.RETURN)
+                    # submit = self.driver.find_element_by_id("submit")
+                    # submit.click()
                     break
 
         print("logging in...")
@@ -119,8 +120,10 @@ class Downloader:
 
 if __name__ == "__main__":
     urls = [
-        "https://www.pornhub.com/view_video.php?viewkey=ph5eb8cc8da4bf8",
-        "https://www.pornhub.com/view_video.php?viewkey=ph5d41210ba0124"
+        "https://www.pornhub.com/view_video.php?viewkey=ph5ebd5cf2658e8",
+        "https://www.pornhub.com/view_video.php?viewkey=ph5e5866a54b458",
+        "https://www.pornhub.com/view_video.php?viewkey=ph5e9618d3baddf",
+        "https://www.pornhub.com/view_video.php?viewkey=ph5ea206352bd49"
       ]
     download = Downloader(urls)
     download.run()
