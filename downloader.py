@@ -9,18 +9,26 @@ from selenium.common.exceptions import ElementNotInteractableException
 from selenium.webdriver.common.keys import Keys
 import time
 import sys
+import json
 
 class Downloader:
     '''Download video for given URL.'''
 
-    def __init__(self, urls, username="oderteme", password="JamesHarden13"):
+    def __init__(self, urls, username="oderteme", password="JamesHarden13", 
+            downloaded_filename="downloaded.json"):
         self.driver = webdriver.Chrome()
         self.urls = urls
         self.username = username
         self.password = password
+        self.downloaded_filename = downloaded_filename
 
     def run(self):
         for url in self.urls:
+            # skip videos that have been downloaded
+            if self.is_downloaded(url, self.downloaded_filename):
+                print("This video has been downloaded before!")
+                continue
+
             paid_video = False # if it's true then skip to next video
 
             # request the page
@@ -33,16 +41,21 @@ class Downloader:
                 if not self.login():
                     print("failed to login")
                     continue
+                # pornhub sometimes redirect to random page after logging in 
+                # so I manually visit the video page after logging in
+                self.driver.get(url) 
+                time.sleep(2) # wait for page to redirect after logging in
             elif body_tag.get_attribute("class") == "logged-in":
                 print("already logged in")
             else:
                 print("wrong logged in state")
                 raise Exception("WTF?")
 
-                
+            
             # wait for page (if needed) to locate download button
             for i in range(60): # wait at most 60 seconds
                 if self.is_page_ready():
+                    print("page is ready")
                     time.sleep(1) # clicking immediately after complete doesn't work
                     download_button = self.driver.find_element_by_class_name(
                         'js-mixpanel.tab-menu-item.tooltipTrig')
@@ -60,15 +73,28 @@ class Downloader:
             if paid_video: # skip to next video if it's paid video
                 continue
 
-            # download the video
+            # find the download link
             try:
-                download_link = self.driver.find_element_by_class_name(
+                download_links = self.driver.find_elements_by_class_name(
                     "downloadBtn.greyButton")
-                download_link.click()
             except NoSuchElementException:
                 print("this video can't be downloaded")
                 continue
 
+            # begining download
+            i = 0 # try every link until it succeeds
+            succeed = False
+            while not succeed:
+                try:
+                    download_link = download_links[i]
+                    download_link.click()
+                    succeed = True
+                except ElementNotInteractableException:
+                    i += 1
+
+            # remember downloaded videos
+            if succeed:
+                self.mark_as_downloaded(url, self.downloaded_filename)
 
     def is_page_ready(self):
         ready_state = self.driver.execute_script("return document.readyState")
@@ -117,6 +143,27 @@ class Downloader:
         print("logging in...")
 
         return True
+
+    def mark_as_downloaded(self, url, filename):
+        with open(filename, "r") as f:
+            try:
+                downloaded_urls = json.load(f)
+            except json.decoder.JSONDecodeError:
+                downloaded_urls = []
+
+            downloaded_urls.append(url)
+
+        with open(filename, "w") as f:
+                json.dump(downloaded_urls, f)
+
+    def is_downloaded(self, url, filename):
+        with open(filename) as f:
+            try:
+                downloaded_urls = json.load(f)
+            except json.decoder.JSONDecodeError:
+                return False
+
+            return url in downloaded_urls
 
 if __name__ == "__main__":
     urls = [
