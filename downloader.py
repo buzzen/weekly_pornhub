@@ -22,7 +22,31 @@ class Downloader:
         self.password = password
         self.downloaded_filename = downloaded_filename
 
+    def setup(self):
+        "login first"
+
+        self.driver.get("http://www.pornhub.com")
+
+        # login if not logged in
+        body_tag = self.driver.find_element_by_tag_name("body")
+        if body_tag.get_attribute("class") == "logged-out":
+            if not self.login():
+                print("failed to login")
+                raise Exception("failed to login")
+            else:
+                print("congrats! You've logged in.")
+            # pornhub sometimes redirect to random page after logging in 
+            # so I manually visit the video page after logging in
+            
+        elif body_tag.get_attribute("class") == "logged-in":
+            print("already logged in")
+        else:
+            print("wrong logged in state")
+            raise Exception("WTF?")
+
     def run(self):
+        self.setup() # login first
+
         for url in self.urls:
             # skip videos that have been downloaded
             if self.is_downloaded(url, self.downloaded_filename):
@@ -35,23 +59,6 @@ class Downloader:
             print("Accessing", url)
             self.driver.get(url)
 
-            # login if not logged in
-            body_tag = self.driver.find_element_by_tag_name("body")
-            if body_tag.get_attribute("class") == "logged-out":
-                if not self.login():
-                    print("failed to login")
-                    continue
-                # pornhub sometimes redirect to random page after logging in 
-                # so I manually visit the video page after logging in
-                self.driver.get(url) 
-                time.sleep(2) # wait for page to redirect after logging in
-            elif body_tag.get_attribute("class") == "logged-in":
-                print("already logged in")
-            else:
-                print("wrong logged in state")
-                raise Exception("WTF?")
-
-            
             # wait for page (if needed) to locate download button
             for i in range(60): # wait at most 60 seconds
                 if self.is_page_ready():
@@ -82,15 +89,15 @@ class Downloader:
                 continue
 
             # begining download
-            i = 0 # try every link until it succeeds
-            succeed = False
-            while not succeed:
+            succeed = False # for mark_as_downloaded
+            # loop download links until finding downloadable
+            for download_link in download_links: 
                 try:
-                    download_link = download_links[i]
                     download_link.click()
                     succeed = True
+                    break
                 except ElementNotInteractableException:
-                    i += 1
+                    continue
 
             # remember downloaded videos
             if succeed:

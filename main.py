@@ -26,10 +26,13 @@ if __name__ == "__main__":
     mv_url = ("https://www.pornhub.com/video?o=mv&min_duration=20" if len(sys.argv) < 2 
         else sys.argv[1]) # url of page including most viewed porns of the week
 
+    print("getting urls from", mv_url)
+
     page_urls = fetch_urls(mv_url)
 
     try:
         demo_downloader = Downloader(page_urls)
         demo_downloader.run()
     finally:
+        input("enter anything to close browser: ")
         demo_downloader.driver.quit()
