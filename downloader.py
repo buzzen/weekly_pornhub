@@ -142,11 +142,12 @@ class Downloader:
                     id_box.send_keys(self.username)
                     pass_box = self.driver.find_element_by_id("password")
                     pass_box.send_keys(self.password)
-                    pass_box.send_keys(Keys.RETURN)
-                    # submit = self.driver.find_element_by_id("submit")
-                    # submit.click()
+                    submit = self.driver.find_element_by_id("submit")
+                    submit.click()
                     break
 
+        # manually wait for 5 seconds so browser can respond to my log in button click
+        time.sleep(5) 
         print("logging in...")
 
         return True
