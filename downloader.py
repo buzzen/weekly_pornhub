@@ -64,8 +64,8 @@ class Downloader:
                 if self.is_page_ready():
                     print("page is ready")
                     time.sleep(1) # clicking immediately after complete doesn't work
-                    download_button = self.driver.find_element_by_class_name(
-                        'js-mixpanel.tab-menu-item.tooltipTrig')
+                    download_button = self.driver.find_element_by_xpath(
+                        "//*[@id='js-shareData']/div/div[3]/div")
                     download_button.click()
                     if "paidDownload" in download_button.get_attribute("class"):
                         print("You need to pay to download!")
